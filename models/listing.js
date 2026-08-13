@@ -16,8 +16,9 @@ const listingSchema = new Schema({
         },
         url: {
             type: String,
-            default:
-                "https://unsplash.com/photos/silhouette-of-palm-tree-near-body-of-water-during-sunset-CXyz3qljaH8",
+            // default:
+            //     "https://unsplash.com/photos/silhouette-of-palm-tree-near-body-of-water-during-sunset-CXyz3qljaH8",
+            default: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e",
         },
     },
 
