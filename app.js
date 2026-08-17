@@ -2,14 +2,12 @@ const express = require("express");
 const app = express();
 const mongoose = require("mongoose");
 const path = require("path");
-const listings = require("./routes/listings.js");
 const methodOverride = require("method-override");
 const ejsMate = require("ejs-mate");
-const wrapAsync = require("./utils/wrapAsync.js");
 const ExpressError = require("./utils/ExpressError.js");
-const { reviewSchema } = require("./schema.js");
-const Review = require("./models/review.js");
 
+const listings = require("./routes/listings.js");
+const reviews = require("./routes/review.js");
 
 const MONGO_URL = "mongodb://127.0.0.1:27017/wanderlust";
 
@@ -27,19 +25,25 @@ async function main() {
 
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
-
 app.use(express.urlencoded({ extended: true }));
 app.use(methodOverride("_method"));
 app.engine("ejs", ejsMate);
 app.use(express.static(path.join(__dirname, "/public")));
+
+
 
 // Root Route
 app.get("/", (req, res) => {
     res.send("Hi dear i am root");
 });
 
-// Listing Routes
 app.use("/listings", listings);
+app.use("/listings/:id/reviews", reviews);
+
+// 404 Error
+app.all("/{*splat}", (req, res, next) => {
+    next(new ExpressError(404, "Page Not Found!"));
+});
 
 // Review Validation
 const validateReview = (req, res, next) => {
@@ -53,55 +57,13 @@ const validateReview = (req, res, next) => {
     }
 };
 
-// Create Review Route
-app.post(
-    "/listings/:id/reviews",
-    validateReview,
-    wrapAsync(async (req, res) => {
-        let listing = await Listing.findById(req.params.id);
 
-        let newReview = new Review(req.body.review);
-
-        listing.reviews.push(newReview);
-
-        await newReview.save();
-        await listing.save();
-
-        res.redirect(`/listings/${listing._id}`);
-    })
-);
-
-// Delete Review Route
-app.delete(
-    "/listings/:id/reviews/:reviewId",
-    wrapAsync(async (req, res) => {
-        let { id, reviewId } = req.params;
-
-        await Listing.findByIdAndUpdate(id, {
-            $pull: { reviews: reviewId }
-        });
-
-        await Review.findByIdAndDelete(reviewId);
-
-        res.redirect(`/listings/${id}`);
-    })
-);
-
-// 404 Error
-app.all("/{*splat}", (req, res, next) => {
-    next(new ExpressError(404, "Page Not Found!"));
-});
-
-// Error Handler
 app.use((err, req, res, next) => {
-    let {
-        statusCode = 500,
-        message = "Something went wrong!"
-    } = err;
-
+    let { statusCode = 500, message = "Something went wrong!" } = err;
     res.status(statusCode).render("error.ejs", { message });
+    // res.status(statusCode).send(message);
 });
 
 app.listen(8080, () => {
-    console.log("server listening to port 8080");
+    console.log("server is listening to port 8080");
 });
