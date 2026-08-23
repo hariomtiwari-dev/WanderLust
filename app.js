@@ -1,7 +1,6 @@
 if (process.env.NODE_ENV != "production") {
     require("dotenv").config();
-} 
-
+}
 
 const express = require("express");
 const app = express();
@@ -20,7 +19,8 @@ const passport = require("passport");
 const LocalStrategy = require("passport-local");
 const User = require("./models/user.js");
 
-const MONGO_URL = "mongodb://127.0.0.1:27017/wanderlust";
+// MongoDB Atlas
+const MONGO_URL = process.env.ATLASDB_URL;
 
 main()
     .then(() => {
@@ -52,10 +52,6 @@ const sessionOptions = {
     },
 };
 
-// app.get("/", (req, res) => {
-//     res.send("Hi dear i am root");
-// });
-
 app.use(session(sessionOptions));
 app.use(flash());
 
@@ -86,29 +82,16 @@ app.get("/demouser", async (req, res) => {
 
 app.use("/listings", listingRouter);
 app.use("/listings/:id/reviews", reviewRouter);
-app.use("/",userRouter);
+app.use("/", userRouter);
 
 // 404 Error
 app.all("/{*splat}", (req, res, next) => {
     next(new ExpressError(404, "Page Not Found!"));
 });
 
-// Review Validation
-const validateReview = (req, res, next) => {
-    let { error } = reviewSchema.validate(req.body);
-
-    if (error) {
-        let errMsg = error.details.map((el) => el.message).join(",");
-        throw new ExpressError(400, errMsg);
-    } else {
-        next();
-    }
-};
-
 app.use((err, req, res, next) => {
     let { statusCode = 500, message = "Something went wrong!" } = err;
     res.status(statusCode).render("error.ejs", { message });
-    // res.status(statusCode).send(message);
 });
 
 app.listen(8080, () => {
