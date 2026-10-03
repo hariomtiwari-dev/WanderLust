@@ -46,11 +46,13 @@
       </div>
 
       <div class="navbar-nav ms-auto">
-        <form class="d-flex" role="search">
+
+        <form class="d-flex" action="/listings" method="GET" role="search">
 
           <input
             class="form-control me-2 search-inp"
             type="search"
+            name="location"
             placeholder="Search destination"
             aria-label="Search"
           />
@@ -61,6 +63,7 @@
           </button>
 
         </form>
+
       </div>
 
       <div class="navbar-nav ms-auto">
